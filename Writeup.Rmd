@@ -1,0 +1,91 @@
+---
+title: "Practical Machine Learning Project"
+output: html_document
+---
+
+## Introduction 
+
+This project looks to predict people's activities during exercise.
+Training and testing data sets come from this source: [http://groupware.les.inf.puc-rio.br/har](http://groupware.les.inf.puc-rio.br/har).
+
+## Initialization and loading required packages 
+```{r initialization, results='hide', message=FALSE, warning=FALSE}
+setwd("c:/Users/Owner/Desktop/PML-Project/")
+
+require(caret)
+require(randomForest)
+
+setInternet2(TRUE)     # needed for downloading https urls
+
+trainingUrl  <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+testingUrl   <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+trainingDest <- "C:/Users/Owner/Desktop/PML-Project/data/pml.train.csv"
+testDest     <- "C:/Users/Owner/Desktop/PML-Project/data/pml.test.csv"
+```
+
+## Download and Clean Data Sets
+```{r downloadLoad}
+if(!file.exists("data")){dir.create("data")}
+
+download.file(trainingUrl, destfile=trainingDest)
+download.file(testingUrl, destfile=testDest)
+
+training <- read.csv(trainingDest,
+                     na.strings=c("NA", "", "NULL"))
+testing  <- read.csv(testDest,
+                     na.strings=c("NA","", "NULL"))
+
+dim(training); dim(testing)
+```
+
+Examination of the data reveals that many variables (columns) contain missing values. I remove these variables from both the training and test dataframes and also remove other unnecessary variables containing descriptive related information (i.e. index, names, etc ...). 
+
+```{r cleanDatasets}
+training <- training[, colSums(is.na(training)) == 0]
+testing  <- testing[, colSums(is.na(testing)) == 0]
+
+training <- training[,8:60]
+testing  <- testing[,8:60]
+
+dim(training); dim(testing)
+```
+
+To perform additional validation of our model, I create a validation dataset from the training data.
+
+```{r createValidation}
+inTrain    <- createDataPartition(training$classe,
+                                  p=0.80,
+                                  list=FALSE)
+validation <- training[-inTrain,] 
+training   <- training[inTrain,]
+```
+
+## Building a Model and evaluation
+
+I'll try a random forest method to predict the activities classes.  
+```{r buildModel}
+set.seed(123)
+modelFit <- randomForest(classe~., data=training)
+modelFit
+```
+The model appeared to perform well (better than 99%) with an Out of Bag Error (OOB Error) of 0.38%.
+I next cross validate the model using the validation data set.
+```{r x-Validate}
+prediction <- predict(modelFit, newdata=validation)
+confMatrix <- confusionMatrix(prediction, validation$classe)
+confMatrix
+```
+The model also produces low errors and is highly acurate (`r confMatrix$overall[[1]] * 100`%) against the validation set so I will use the the model to predict the activity classe for the test set.
+```{r submission}
+answers <- as.vector(predict(modelFit, newdata=testing))
+
+pml_write_files = function(x){
+        n = length(x)
+        for(i in 1:n){
+                filename = paste0("problem_id_",i,".txt")
+                write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+        }
+}
+
+pml_write_files(answers)
+```
