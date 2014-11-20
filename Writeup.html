@@ -98,7 +98,7 @@ testing  &lt;- testing[,8:60]
 dim(training); dim(testing)</code></pre>
 <pre><code>## [1] 19622    53</code></pre>
 <pre><code>## [1] 20 53</code></pre>
-<p>To perform additional validation of our model, I create a validation dataset from the training data.</p>
+<p>I next split the original training data into a new training dataset that I will use to build the model and an independent validation dataset that I will use to test/validate the model.</p>
 <pre class="r"><code>inTrain    &lt;- createDataPartition(training$classe,
                                   p=0.80,
                                   list=FALSE)
@@ -118,15 +118,15 @@ modelFit</code></pre>
 ##                      Number of trees: 500
 ## No. of variables tried at each split: 7
 ## 
-##         OOB estimate of  error rate: 0.48%
+##         OOB estimate of  error rate: 0.37%
 ## Confusion matrix:
 ##      A    B    C    D    E class.error
-## A 4461    2    0    0    1    0.000672
-## B   12 3020    6    0    0    0.005925
-## C    0   14 2722    2    0    0.005844
-## D    0    0   25 2545    3    0.010882
-## E    0    0    3    8 2875    0.003812</code></pre>
-<p>The model appeared to perform well (better than 99%) with an Out of Bag Error (OOB Error) of 0.38%. I next cross validate the model using the validation data set.</p>
+## A 4458    5    1    0    0    0.001344
+## B    8 3026    4    0    0    0.003950
+## C    0    9 2727    2    0    0.004018
+## D    0    0   22 2549    2    0.009328
+## E    0    0    1    4 2881    0.001733</code></pre>
+<p>The model appeared to perform well (better than 99%) with a low Out of Bag Error (OOB Error) of 0.38%. I next validate the model using the validation data set to ensure we did not overfit the model to the data.</p>
 <pre class="r"><code>prediction &lt;- predict(modelFit, newdata=validation)
 confMatrix &lt;- confusionMatrix(prediction, validation$classe)
 confMatrix</code></pre>
@@ -134,34 +134,34 @@ confMatrix</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1116    2    0    0    0
-##          B    0  756    2    0    0
-##          C    0    1  682    5    0
-##          D    0    0    0  637    0
-##          E    0    0    0    1  721
+##          A 1115    1    0    0    0
+##          B    1  757    5    0    0
+##          C    0    1  679    9    0
+##          D    0    0    0  634    2
+##          E    0    0    0    0  719
 ## 
 ## Overall Statistics
 ##                                         
-##                Accuracy : 0.997         
-##                  95% CI : (0.995, 0.999)
+##                Accuracy : 0.995         
+##                  95% CI : (0.992, 0.997)
 ##     No Information Rate : 0.284         
 ##     P-Value [Acc &gt; NIR] : &lt;2e-16        
 ##                                         
-##                   Kappa : 0.996         
+##                   Kappa : 0.994         
 ##  Mcnemar's Test P-Value : NA            
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             1.000    0.996    0.997    0.991    1.000
-## Specificity             0.999    0.999    0.998    1.000    1.000
-## Pos Pred Value          0.998    0.997    0.991    1.000    0.999
-## Neg Pred Value          1.000    0.999    0.999    0.998    1.000
+## Sensitivity             0.999    0.997    0.993    0.986    0.997
+## Specificity             1.000    0.998    0.997    0.999    1.000
+## Pos Pred Value          0.999    0.992    0.985    0.997    1.000
+## Neg Pred Value          1.000    0.999    0.998    0.997    0.999
 ## Prevalence              0.284    0.193    0.174    0.164    0.184
-## Detection Rate          0.284    0.193    0.174    0.162    0.184
-## Detection Prevalence    0.285    0.193    0.175    0.162    0.184
-## Balanced Accuracy       1.000    0.998    0.998    0.995    1.000</code></pre>
-<p>The model also produces low errors and is highly acurate (99.7196%) against the validation set so I will use the the model to predict the activity classe for the test set.</p>
+## Detection Rate          0.284    0.193    0.173    0.162    0.183
+## Detection Prevalence    0.284    0.194    0.176    0.162    0.183
+## Balanced Accuracy       0.999    0.998    0.995    0.993    0.999</code></pre>
+<p>The model also produces low errors and is highly acurate (99.5157%) against the validation set so I will use the the model to predict the activity classe for the test set.</p>
 <pre class="r"><code>answers &lt;- as.vector(predict(modelFit, newdata=testing))
 
 pml_write_files = function(x){
@@ -173,6 +173,7 @@ pml_write_files = function(x){
 }
 
 pml_write_files(answers)</code></pre>
+<p>Result: The submission produced 20/20 correct answers. Random Forest seems to be a good model for this example.</p>
 </div>
 
 

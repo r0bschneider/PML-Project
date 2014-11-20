@@ -50,7 +50,7 @@ testing  <- testing[,8:60]
 dim(training); dim(testing)
 ```
 
-To perform additional validation of our model, I create a validation dataset from the training data.
+I next split the original training data into a new training dataset that I will use to build the model and an independent validation dataset that I will use to test/validate the model.
 
 ```{r createValidation}
 inTrain    <- createDataPartition(training$classe,
@@ -68,8 +68,8 @@ set.seed(123)
 modelFit <- randomForest(classe~., data=training)
 modelFit
 ```
-The model appeared to perform well (better than 99%) with an Out of Bag Error (OOB Error) of 0.38%.
-I next cross validate the model using the validation data set.
+The model appeared to perform well (better than 99%) with a low Out of Bag Error (OOB Error) of 0.38%.
+I next validate the model using the validation data set to ensure we did not overfit the model to the data.
 ```{r x-Validate}
 prediction <- predict(modelFit, newdata=validation)
 confMatrix <- confusionMatrix(prediction, validation$classe)
@@ -89,3 +89,4 @@ pml_write_files = function(x){
 
 pml_write_files(answers)
 ```
+Result: The submission produced 20/20 correct answers. Random Forest seems to be a good model for this example.
